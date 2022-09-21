@@ -38,6 +38,8 @@ module Pagination
             next: "#{url}#{meta_data[:next_url]}",
             last: "#{url}#{meta_data[:last_url]}"
         }
+
+        links
     end
     
     def get_base_url
