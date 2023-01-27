@@ -18,10 +18,17 @@ Bundler.require(*Rails.groups)
 
 module RailsApi
   class Application < Rails::Application
+    config.before_configuration do
+      env_file = File.join(Rails.root, 'config', 'local_env.yml')
+      YAML.load(File.open(env_file)).each do |key, value|
+        ENV[key.to_s] = value
+      end if File.exists?(env_file)
+    end
     # config.autoload_paths << Rails.root.join('lib')
     config.paths.add Rails.root.join('lib').to_s, eager_load: true
      config.eager_load_paths += %W(
       #{config.root}/lib/exception_errors
+      #{config.root}/lib/firebase
       #{config.root}/app/serializers/concerns
     )
     # Settings in config/environments/* take precedence over those specified here.

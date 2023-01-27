@@ -1,5 +1,6 @@
 class ArticlesController < ApplicationController
     include Pagination
+    before_action :autorized_user?
     
     after_action { pagy_headers_merge(@pagy) if @pagy }
      
@@ -26,5 +27,4 @@ class ArticlesController < ApplicationController
     def serializer
         ArticleSerializer
     end
-    
 end

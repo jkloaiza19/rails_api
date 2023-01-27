@@ -1,6 +1,15 @@
 module Pagination
     extend ActiveSupport::Concern
     
+    ##
+    # > It takes in a collection of data, paginates it using the `pagy` gem, and returns the paginated
+    # data along with the meta data required for pagination
+    # 
+    # Args:
+    #   data: The data that you want to paginate.
+    # 
+    # Returns:
+    #   The records and the options hash.
     def paginate(data)
         pagy, records = pagy(data, page: pagination_params[:page], items: pagination_params[:size])
         

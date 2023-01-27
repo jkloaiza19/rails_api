@@ -1,4 +1,5 @@
-class ExceptionErrors::NotFound
+# > This class is used to create a JSON API compliant error response when a resource is not found
+class ExceptionErrors::NotFound < StandardError
     attr_reader :detail, :status, :code, :title
     
     HTTP_STATUS_CODE = 404  

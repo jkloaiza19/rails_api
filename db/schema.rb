@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20220920012833) do
+ActiveRecord::Schema.define(version: 20230112041631) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -31,6 +31,18 @@ ActiveRecord::Schema.define(version: 20220920012833) do
     t.index ["jti"], name: "index_jwt_blacklists_on_jti", using: :btree
   end
 
+  create_table "posts", force: :cascade do |t|
+    t.string   "caption"
+    t.float    "latitude"
+    t.float    "longitude"
+    t.integer  "user_id"
+    t.boolean  "allow_comments"
+    t.boolean  "show_likes_count"
+    t.datetime "created_at",       null: false
+    t.datetime "updated_at",       null: false
+    t.index ["user_id"], name: "index_posts_on_user_id", using: :btree
+  end
+
   create_table "users", force: :cascade do |t|
     t.string   "email",                  default: "", null: false
     t.string   "encrypted_password",     default: "", null: false
@@ -43,4 +55,5 @@ ActiveRecord::Schema.define(version: 20220920012833) do
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true, using: :btree
   end
 
+  add_foreign_key "posts", "users"
 end

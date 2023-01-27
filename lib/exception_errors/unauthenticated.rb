@@ -1,9 +1,9 @@
-class ExceptionErrors::Unauthenticated
+class ExceptionErrors::Unauthenticated < StandardError
     attr_reader :detail, :status, :code, :title
     
     HTTP_STATUS_CODE = 401
     
-    def initialize(ys = {})
+    def initialize(opts = {})
         @status = HTTP_STATUS_CODE
         @title = opts.title || 'Unauthenticated'
         @detail = opts.detail || 'Unauthenticated'
