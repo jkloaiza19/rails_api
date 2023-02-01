@@ -1,4 +1,5 @@
 class SessionsController < Devise::SessionsController
+include UserConcern
     respond_to :json
     before_action :autorized_user?, except: %i[create new]
 
@@ -8,9 +9,11 @@ class SessionsController < Devise::SessionsController
       sign_in(resource_name, resource)
 
       firebase_data = Firebase::AuthenticationManager.signin(sign_in_params[:email], sign_in_params[:password])
-byebug
+
       yield resource if block_given?
-      respond_with resource, { location: after_sign_in_path_for(resource), token: firebase_data['idToken'], refresh_token: firebase_data['refreshToken'] }
+
+      user_data = user_app_data(resource)
+      respond_with user_data, { location: after_sign_in_path_for(resource), token: firebase_data['idToken'], refresh_token: firebase_data['refreshToken'] }
     end
 
     private
