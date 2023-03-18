@@ -8,11 +8,18 @@ module Notifications
       new(args).call
     end
 
-    def initialize(args)
-      @user_emails = args.user_emails
+    def self.perform(*args)
+      new(*args).perform
+    end
+
+    def initialize(user_emails, user_state)
+      @user_emails = user_emails
+      @user_state = user_state
     end
 
     # To be implemented by the child class
     def call; end
+
+    def perform; end
   end
 end

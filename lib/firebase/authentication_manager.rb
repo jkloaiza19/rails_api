@@ -9,6 +9,7 @@ module Firebase
     FIREBASE_SIGNIN_URI = URI("https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=#{ENV['FIREBASE_API_KEY']}")
     FIREBASE_REFRESH_TOKEN_URI = URI("https://securetoken.googleapis.com/v1/token?key=#{ENV['FIREBASE_API_KEY']}")
     FIREBASE_PUBLIC_KEY_URL = URI('https://www.googleapis.com/robot/v1/metadata/x509/securetoken@system.gserviceaccount.com')
+    FIREBASE_SECURE_TOKEN_URL = "https://securetoken.google.com/#{ENV['FIREBASE_PROJECT_ID']}".freeze
     JWT_ALGORITHM = 'RS256'.freeze
 
     class << self
@@ -19,7 +20,7 @@ module Firebase
       end
 
       def signin(email, password)
-        response = Net::HTTP.post_form(FIREBASE_SIGNIN_URI, email: email, password: password)
+        response = Net::HTTP.post_form(FIREBASE_SIGNIN_URI, email: email, password: password, returnSecureToken: true)
 
         JSON.parse(response.body) if response.is_a?(Net::HTTPSuccess)
       end
@@ -31,15 +32,18 @@ module Firebase
       end
 
       def valid_token?(token)
-        header = decode_header(token)
-        alg = header['alg']
-        kid = header['kid']
+        # header = decode_header(token)
+        # alg = header['alg']
+        # kid = header['kid']
+        alg = decoded_token.last['alg']
+        kid = decoded_token.last['kid']
 
         public_key = public_key(kid)
 
         raise ExceptionErrors::InvalidToken.new(detail: "Invalid token alg header #{alg}") unless alg == JWT_ALGORITHM
 
-        decoded_token = decode_token(token, public_key, ENV['FIREBASE_PROJECT_ID'])
+        decoded_token = decode_token(token, public_key)
+        byebug
 
         valid_token = token_active?(decoded_token.first['exp'])
 
@@ -56,9 +60,15 @@ module Firebase
         JSON.parse(Base64.decode64(encoded_header))
       end
 
+      ##
+      # It fetches the public keys from Google, parses the JSON response, and returns the public key for
+      # the given kid
+      # 
+      # Args:
+      #   kid: The key ID of the public key that was used to sign the JWT.
       def public_key(kid)
         response = Net::HTTP.get(FIREBASE_PUBLIC_KEY_URL)
-
+        
         raise StandardError, 'Failed to fetch JWT public keys from google' unless response.is_a?(String)
 
         public_keys = JSON.parse(response)
@@ -68,14 +78,14 @@ module Firebase
         OpenSSL::X509::Certificate.new(public_keys[kid]).public_key
       end
 
-      def decode_token(token, public_key, firebase_project_id)
+      def decode_token(token, public_key)
         options = {
           algorithm: JWT_ALGORITHM,
           verify_iat: true,
           verify_aud: true,
-          aud: firebase_project_id,
+          aud: ENV['FIREBASE_PROJECT_ID'],
           verify_iss: true,
-          iss: "https://securetoken.google.com/#{firebase_project_id}"
+          iss: FIREBASE_SECURE_TOKEN_URL
         }
 
         JWT.decode(token, public_key, true, options)
