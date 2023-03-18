@@ -9,6 +9,8 @@ class User < ApplicationRecord
   has_many :posts
   has_many :articles
 
+  validates :user_id, uniqueness: true
+
   scope :articles, -> { where(:active => true)}
   # Ex:- scope :active, -> {where(:active => true)}
 end
