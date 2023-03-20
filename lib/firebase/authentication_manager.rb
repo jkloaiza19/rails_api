@@ -32,18 +32,15 @@ module Firebase
       end
 
       def valid_token?(token)
-        # header = decode_header(token)
-        # alg = header['alg']
-        # kid = header['kid']
-        alg = decoded_token.last['alg']
-        kid = decoded_token.last['kid']
+        header = decode_header(token)
+        alg = header['alg']
+        kid = header['kid']
 
         public_key = public_key(kid)
 
         raise ExceptionErrors::InvalidToken.new(detail: "Invalid token alg header #{alg}") unless alg == JWT_ALGORITHM
 
         decoded_token = decode_token(token, public_key)
-        byebug
 
         valid_token = token_active?(decoded_token.first['exp'])
 
